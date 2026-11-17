@@ -1,0 +1,34 @@
+# Secrets: never commit real environment files or generated credentials
+.env
+.env.*
+!.env.example
+.admin-credentials.txt
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Build and cache output
+dist/
+build/
+coverage/
+__pycache__/
+*.pyc
+*.tsbuildinfo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Logs
+*.log
+logs/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local tooling config (per-machine, not part of the product)
+.claude/
