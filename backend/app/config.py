@@ -1,7 +1,7 @@
 from functools import lru_cache
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # libpq-only query params that asyncpg rejects.
@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Slot "past/today" decisions use the clinic's local time, not the server's.
     clinic_timezone: str = "Asia/Dhaka"
     booking_window_days: int = 60
+    # Optional Postgres schema pinned via search_path (lets tests run in an isolated schema).
+    # A strict identifier pattern keeps it safe to place in a connection startup parameter.
+    db_schema: str | None = Field(default=None, pattern=r"^[a-z_][a-z0-9_]{0,62}$")
 
     @field_validator("jwt_secret")
     @classmethod

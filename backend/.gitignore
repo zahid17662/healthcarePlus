@@ -4,3 +4,7 @@ __pycache__/
 .env
 .pytest_cache/
 .admin-credentials.txt
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml

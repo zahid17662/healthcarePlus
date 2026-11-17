@@ -20,11 +20,28 @@ Interactive docs: http://localhost:8000/docs · health: `/health`
 printed). Set `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` to choose your own. Delete the sample
 doctors from the admin UI (or skip seeding) before real use.
 
-Verify a running server end to end (creates and then removes its own throw-away users):
+## Tests
 
 ```bash
-.venv/Scripts/python scripts/smoke_test.py        # 38 checks incl. 12-way concurrent booking
+.venv/Scripts/pip install -r requirements-dev.txt
+.venv/Scripts/python -m pytest                            # everything
+.venv/Scripts/python -m pytest -m unit                    # fast, no database
+.venv/Scripts/python -m pytest -m integration             # API + database
+.venv/Scripts/python -m pytest --cov=app --cov-report=term-missing --cov-report=html   # coverage (gate: 80%)
 ```
+
+- `tests/unit` — slot generation, status transitions, JWT/password handling, config, schemas, rate limiter.
+  No database needed.
+- `tests/integration` — the real FastAPI app called in-process: auth, doctors, availability, booking,
+  the double-booking race (8 concurrent patients, exactly one 201), cancel and rebook, notifications,
+  recommendations, admin routes, statistics, and a 401/403 matrix over every endpoint.
+
+**Test database safety.** Tests never touch production data. Every connection is pinned to a separate
+Postgres schema (`medibook_test`, override with `TEST_DB_SCHEMA`), which is recreated from `sql/*.sql` at the
+start of a run and dropped at the end. Before any test executes, the suite checks through the application's
+own engine that it really is on that schema and aborts otherwise. It reads the database from
+`TEST_DATABASE_URL`, falling back to `DATABASE_URL` in `.env`; use a direct (non `-pooler`) endpoint, or
+point `TEST_DATABASE_URL` at a throw-away Postgres in CI. Without any database, only unit tests run.
 
 ## Double-booking guard
 

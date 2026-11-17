@@ -16,6 +16,10 @@ class RateLimiter:
         self._window = window_seconds
         self._hits: dict[str, deque[float]] = defaultdict(deque)
 
+    def reset(self) -> None:
+        """Forget every recorded hit (used between tests)."""
+        self._hits.clear()
+
     async def __call__(self, request: Request) -> None:
         key = request.client.host if request.client else "unknown"
         now = time.monotonic()

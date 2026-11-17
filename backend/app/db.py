@@ -1,5 +1,7 @@
 from collections.abc import AsyncIterator
+from typing import Any
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from .config import get_settings
@@ -24,6 +26,23 @@ engine = create_async_engine(
     max_overflow=5,
     connect_args=_connect_args,
 )
+
+if _settings.db_schema:
+    _schema = _settings.db_schema  # validated identifier (see Settings.db_schema)
+
+    @event.listens_for(engine.sync_engine, "connect")
+    def _pin_search_path(dbapi_connection: Any, _record: Any) -> None:
+        """Pin every new connection to one schema.
+
+        Done with SET (not the `search_path` startup parameter): Neon ignores that parameter.
+        """
+        previous = dbapi_connection.autocommit
+        dbapi_connection.autocommit = True
+        cursor = dbapi_connection.cursor()
+        cursor.execute(f'SET search_path TO "{_schema}"')
+        cursor.close()
+        dbapi_connection.autocommit = previous
+
 
 SessionFactory = async_sessionmaker(engine, expire_on_commit=False)
 

@@ -1,0 +1,14 @@
+[run]
+source = app
+branch = True
+# SQLAlchemy's async layer runs inside greenlets; without this, coverage misses those lines.
+concurrency = greenlet,thread
+
+[report]
+# Fail `pytest --cov` below this line (project requirement: 80%).
+fail_under = 80
+show_missing = True
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
